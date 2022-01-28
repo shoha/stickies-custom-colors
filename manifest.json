@@ -5,7 +5,8 @@
   "version": "0.1",
   "description": "Adds support for additional colors.",
   "permissions": ["chrome://*", "https://stickies.io/boards/*/"],
-  "host_permissions": ["chrome://*", "https://stickies.io/boards/*/"],
+  "web_accessible_resources": ["injected.js"],
+
   "content_scripts": [
     {
       "matches": ["https://stickies.io/boards/*"],
