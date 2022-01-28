@@ -1,0 +1,48 @@
+.card__colors.card__action {
+  flex-wrap: wrap;
+  margin-right: 0.15rem;
+}
+
+.color.card__color {
+  margin-top: 0.15rem;
+}
+
+.card.color-7 .delete {
+  color: #dd5db5;
+  background-color: #8c1bd1;
+}
+.color-7 {
+  background-color: #8c1bd1;
+}
+
+.card.color-8 .delete {
+  color: #dd5db5;
+  background-color: #19e9fa;
+}
+.color-8 {
+  background-color: #19e9fa;
+}
+
+.card.color-9 .delete {
+  color: #dd5db5;
+  background-color: #c2fa0c;
+}
+.color-9 {
+  background-color: #c2fa0c;
+}
+
+.card.color-10 .delete {
+  color: #dd5db5;
+  background-color: #ea8e8c;
+}
+.color-10 {
+  background-color: #ea8e8c;
+}
+
+.card.color-11 .delete {
+  color: #dd5db5;
+  background-color: #3ea6a8;
+}
+.color-11 {
+  background-color: #3ea6a8;
+}

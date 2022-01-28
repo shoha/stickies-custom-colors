@@ -1,0 +1,17 @@
+{
+  "name": "Stickies.io Custom Colors",
+  "action": {},
+  "manifest_version": 2,
+  "version": "0.1",
+  "description": "Adds support for additional colors.",
+  "permissions": ["chrome://*", "https://stickies.io/boards/*/"],
+  "host_permissions": ["chrome://*", "https://stickies.io/boards/*/"],
+  "content_scripts": [
+    {
+      "matches": ["https://stickies.io/boards/*"],
+      "css": ["custom-colors.css"],
+      "js": ["content-script.js"]
+    }
+  ],
+  "content_security_policy": "script-src 'sha256-0MvLN70bYzjy0U50SNmt55vU4/ZAI7P1HwuD0bDkzYA='"
+}
