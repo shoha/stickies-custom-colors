@@ -1,10 +1,17 @@
 (() => {
+  const DEFAULT_COLOR_INDEX = 2;
+  const Z_PREFIX = 12300;
+
   const setOverrides = () => {
     // Remove bounds check on color index
     stickies.models.Card.prototype.colorize = function (colorIndex) {
       var options =
         arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       if (this.findSpecialKeyword()) return;
+
+      if (colorIndex > 4) {
+        this.group().set("z", Z_PREFIX + colorIndex);
+      }
 
       if (colorIndex < 0) {
         colorIndex = DEFAULT_COLOR_INDEX;
@@ -13,9 +20,21 @@
       this.set({
         colorIndex: colorIndex,
       });
+
       this.touch();
+
       if (!options.shouldBroadcast) return;
+
       this.sheet().trigger("card:colorized", this, colorIndex);
+    };
+
+    stickies.models.Card.prototype.sdpColorIndex = function () {
+      const index =
+        this.group().get("z") > Z_PREFIX
+          ? this.group().get("z") % Z_PREFIX
+          : this.colorIndex;
+
+      return index;
     };
 
     // Override the template to show our new selectors
@@ -60,6 +79,22 @@
       },
     });
 
+    stickies.views.Card.prototype.updateColor = function (card, color) {
+      this.$el.removeClassMatching(/color-\d+/);
+      this.$el.addClass(
+        `color-${
+          card.sdpColorIndex() != null
+            ? card.sdpColorIndex()
+            : DEFAULT_COLOR_INDEX
+        }`
+      );
+    };
+
+    // Noop to preserve z indexes
+    stickies.models.Group.prototype.bringForward = function (options) {
+      return;
+    };
+
     // Rerender all the cards with the new template
     const sheetView = router.roomView.board.sheetView;
     sheetView._childViews.forEach((groupView) => {
@@ -69,15 +104,19 @@
     });
   };
 
-  const overridesInterval = setInterval(() => {
-    // Block until stickies.io has populated global state
-    if (!window.stickies) {
-      return;
-    }
+  try {
+    setOverrides();
+  } catch {
+    const overridesInterval = setInterval(() => {
+      // Block until stickies.io has populated global state
+      if (!window.stickies) {
+        return;
+      }
 
-    try {
-      setOverrides();
-      clearInterval(overridesInterval);
-    } catch {}
-  }, 100);
+      try {
+        setOverrides();
+        clearInterval(overridesInterval);
+      } catch {}
+    }, 100);
+  }
 })();

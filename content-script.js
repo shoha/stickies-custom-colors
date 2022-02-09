@@ -6,5 +6,5 @@
   s.onload = function () {
     this.remove();
   };
-  document.body.appendChild(s);
+  document?.children?.[0]?.appendChild(s);
 })();
