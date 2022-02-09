@@ -11,6 +11,8 @@
 
       if (colorIndex > 4) {
         this.group().set("z", Z_PREFIX + colorIndex);
+      } else {
+        this.group().set("z", Z_PREFIX - colorIndex);
       }
 
       if (colorIndex < 0) {
@@ -32,7 +34,7 @@
       const index =
         this.group().get("z") > Z_PREFIX
           ? this.group().get("z") % Z_PREFIX
-          : this.colorIndex;
+          : this.get("colorIndex");
 
       return index;
     };
@@ -53,17 +55,17 @@
       <div class='card__authors card__action'></div>
       <div class='card__colors card__action'>
         <span class='color card__color color-0'></span>
-        <span class='color card__color color-1'></span>
-        <span class='color card__color color-2'></span>
-        <span class='color card__color color-3'></span>
-        <span class='color card__color color-4'></span>
-        <span class='color card__color color-5'></span>
-        <span class='color card__color color-6'></span>
-        <span class='color card__color color-7'></span>
         <span class='color card__color color-8'></span>
+        <span class='color card__color color-5'></span>
+        <span class='color card__color color-7'></span>
+        <span class='color card__color color-4'></span>
+        <span class='color card__color color-11'></span>
+        <span class='color card__color color-3'></span>
         <span class='color card__color color-9'></span>
         <span class='color card__color color-10'></span>
-        <span class='color card__color color-11'></span>
+        <span class='color card__color color-2'></span>
+        <span class='color card__color color-1'></span>
+        <span class='color card__color color-6'></span>
       </div>
       <div class='card__plus-one--button card__plus-one card__action'>
         <div class='card__plus-one-count' title="Change the +1 count for this card">+1</div>
