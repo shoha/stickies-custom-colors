@@ -1,19 +1,34 @@
 (() => {
   const DEFAULT_COLOR_INDEX = 2;
-  const Z_PREFIX = 12300;
+  const RANGE_MAX = 10000;
+  const RANGE_MIN = 0;
 
   const setOverrides = () => {
+    stickies.utils.encodeZ = function (z, colorIndex) {
+      return z * (RANGE_MAX - RANGE_MIN + 1) + colorIndex;
+    };
+
+    stickies.utils.decodeZ = function (encodedZ) {
+      return {
+        z: Math.ceil(RANGE_MIN + encodedZ / (RANGE_MAX - RANGE_MIN + 1)),
+        colorIndex: Math.ceil(
+          RANGE_MIN + (encodedZ % (RANGE_MAX - RANGE_MIN + 1))
+        ),
+      };
+    };
+
     // Remove bounds check on color index
     stickies.models.Card.prototype.colorize = function (colorIndex) {
       var options =
         arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
       if (this.findSpecialKeyword()) return;
 
-      if (colorIndex > 4) {
-        this.group().set("z", Z_PREFIX + colorIndex);
-      } else {
-        this.group().set("z", Z_PREFIX - colorIndex);
-      }
+      const { z: currentZ, colorIndex: currentColorIndex } =
+        stickies.utils.decodeZ(this.group().get("z"));
+
+      const newEncodedZ = stickies.utils.encodeZ(currentZ, colorIndex);
+      this.group().set("z", newEncodedZ);
 
       if (colorIndex < 0) {
         colorIndex = DEFAULT_COLOR_INDEX;
@@ -31,12 +46,7 @@
     };
 
     stickies.models.Card.prototype.sdpColorIndex = function () {
-      const index =
-        this.group().get("z") > Z_PREFIX
-          ? this.group().get("z") % Z_PREFIX
-          : this.get("colorIndex");
-
-      return index;
+      return stickies.utils.decodeZ(this.group().get("z")).colorIndex;
     };
 
     // Override the template to show our new selectors
@@ -92,9 +102,74 @@
       );
     };
 
-    // Noop to preserve z indexes
+    stickies.views.Card.prototype.updateZIndex = function () {
+      var zIndex;
+
+      if (this.model.isDragging()) {
+        zIndex = stickies.utils.zIndexManager.OBJECT_DRAGGING_Z_INDEX;
+      } else if (this.model.isBeingDragged()) {
+        zIndex = stickies.utils.zIndexManager.OBJECT_BEING_DRAGGED_Z_INDEX;
+      } else {
+        zIndex = "";
+      }
+
+      this.$el.css("z-index", zIndex);
+    };
+
     stickies.models.Group.prototype.bringForward = function (options) {
-      return;
+      var maxZ = this.sheet().maxZ();
+      const { z: currentZ, colorIndex } = stickies.utils.decodeZ(this.get("z"));
+
+      if (currentZ !== maxZ) {
+        this.set("z", stickies.utils.encodeZ(maxZ + 1, colorIndex), options);
+      }
+    };
+
+    stickies.views.Group.prototype.updateZ = function (group, z) {
+      var zIndex;
+      const { z: currentZ } = stickies.utils.decodeZ(z);
+
+      if (this.model.isDragging()) {
+        zIndex = stickies.utils.zIndexManager.OBJECT_DRAGGING_Z_INDEX;
+      } else if (this.model.isBeingDragged()) {
+        zIndex = stickies.utils.zIndexManager.OBJECT_BEING_DRAGGED_Z_INDEX;
+      } else if (this.focused) {
+        zIndex = stickies.utils.zIndexManager.GROUP_FOCUSED_Z_INDEX;
+      } else {
+        zIndex = currentZ;
+      }
+
+      this.$el.css("z-index", zIndex);
+    };
+
+    stickies.models.Sheet.prototype.maxZ = function () {
+      var groups = this.groups();
+
+      if (!groups || !(groups.length > 0)) {
+        return 0;
+      }
+
+      var maxGroup = groups.max(function (group) {
+        return stickies.utils.decodeZ(group.get("z")).z || 0;
+      });
+      return stickies.utils.decodeZ(maxGroup.get("z")).z || 0;
+    };
+
+    stickies.models.Sheet.prototype.createGroup = function (
+      coords,
+      name,
+      options = {}
+    ) {
+      const maxZ = this.maxZ();
+      const group = this.newGroupAt(coords, name);
+      group.set("z", stickies.utils.encodeZ(maxZ + 1, DEFAULT_COLOR_INDEX));
+      this.groups().add(group);
+
+      if (!options.empty) {
+        group.createCard();
+      }
+
+      return group;
     };
 
     // Rerender all the cards with the new template
