@@ -4,6 +4,8 @@
   const RANGE_MIN = 0;
 
   const setOverrides = () => {
+    // Encode and decode z-index and color index into a single integer
+    // we can store as the z-index remotely.
     stickies.utils.encodeZ = function (z, colorIndex) {
       return z * (RANGE_MAX - RANGE_MIN + 1) + colorIndex;
     };
@@ -17,7 +19,7 @@
       };
     };
 
-    // Remove bounds check on color index
+    // Utilize the encoder/decoder to store arbitrary integer color indexes
     stickies.models.Card.prototype.colorize = function (colorIndex) {
       var options =
         arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -91,6 +93,7 @@
       },
     });
 
+    // Use our helper to decode extended color indexes to set the class
     stickies.views.Card.prototype.updateColor = function (card, color) {
       this.$el.removeClassMatching(/color-\d+/);
       this.$el.addClass(
@@ -102,20 +105,7 @@
       );
     };
 
-    stickies.views.Card.prototype.updateZIndex = function () {
-      var zIndex;
-
-      if (this.model.isDragging()) {
-        zIndex = stickies.utils.zIndexManager.OBJECT_DRAGGING_Z_INDEX;
-      } else if (this.model.isBeingDragged()) {
-        zIndex = stickies.utils.zIndexManager.OBJECT_BEING_DRAGGED_Z_INDEX;
-      } else {
-        zIndex = "";
-      }
-
-      this.$el.css("z-index", zIndex);
-    };
-
+    // Ensure that we are comparing and persisting decoded and encoded values respectively
     stickies.models.Group.prototype.bringForward = function (options) {
       var maxZ = this.sheet().maxZ();
       const { z: currentZ, colorIndex } = stickies.utils.decodeZ(this.get("z"));
@@ -125,6 +115,7 @@
       }
     };
 
+    // Use the decoded z-index as the CSS value, not the persisted value
     stickies.views.Group.prototype.updateZ = function (group, z) {
       var zIndex;
       const { z: currentZ } = stickies.utils.decodeZ(z);
@@ -142,6 +133,7 @@
       this.$el.css("z-index", zIndex);
     };
 
+    // Compare the encoded z values, not the persisted value
     stickies.models.Sheet.prototype.maxZ = function () {
       var groups = this.groups();
 
@@ -155,6 +147,7 @@
       return stickies.utils.decodeZ(maxGroup.get("z")).z || 0;
     };
 
+    // Set z properly when creating a new card
     stickies.models.Sheet.prototype.createGroup = function (
       coords,
       name,
