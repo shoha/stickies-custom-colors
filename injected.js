@@ -2,19 +2,30 @@
   const DEFAULT_COLOR_INDEX = 2;
   const RANGE_MAX = 10000;
   const RANGE_MIN = 0;
+  const ENCODED_PREFIX = "777";
 
   const setOverrides = () => {
     // Encode and decode z-index and color index into a single integer
     // we can store as the z-index remotely.
     stickies.utils.encodeZ = function (z, colorIndex) {
-      return z * (RANGE_MAX - RANGE_MIN + 1) + colorIndex;
+      const zNum = z * (RANGE_MAX - RANGE_MIN + 1) + colorIndex;
+      return parseInt(ENCODED_PREFIX + zNum);
     };
 
     stickies.utils.decodeZ = function (encodedZ) {
+      if (encodedZ.toString().indexOf(ENCODED_PREFIX) != 0) {
+        return {
+          z: encodedZ,
+          colorIndex: DEFAULT_COLOR_INDEX,
+        };
+      }
+
+      const zWithoutPrefix = parseInt(encodedZ.toString().substr(3));
+
       return {
-        z: Math.ceil(RANGE_MIN + encodedZ / (RANGE_MAX - RANGE_MIN + 1)),
+        z: Math.ceil(RANGE_MIN + zWithoutPrefix / (RANGE_MAX - RANGE_MIN + 1)),
         colorIndex: Math.ceil(
-          RANGE_MIN + (encodedZ % (RANGE_MAX - RANGE_MIN + 1))
+          RANGE_MIN + (zWithoutPrefix % (RANGE_MAX - RANGE_MIN + 1))
         ),
       };
     };
